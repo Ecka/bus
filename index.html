@@ -384,11 +384,12 @@
     document.addEventListener("DOMContentLoaded", () => {
       const apiKey = getApiKey();
       if (!apiKey) {
-        // Ask the user for the API key
         showApiKeyOverlay();
       } else {
-        // We already have an API key, just load data
         loadData();
+        setInterval(() => {
+          loadData();
+        }, 30000);
       }
     });
   </script>
