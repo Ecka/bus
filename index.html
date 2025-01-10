@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bus</title>
+  <!-- Ensure mobile-friendly scaling -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    /* ========== Basic Reset & Layout ========== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      color: #333;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    
+    .stop-section {
+      background: #fff;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* ========== Stop Title and Next Bus ========== */
+    .stop-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stop-header h2 {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .stop-subtitle {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    .next-bus {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+      cursor: pointer;
+      margin: 0.5rem 0;
+    }
+    
+    /* ========== Subsequent Buses ========== */
+    .subsequent-buses {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .subsequent-bus {
+      background: #007bff;
+      color: #fff;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      flex: 1 1 auto;
+      text-align: center;
+      cursor: pointer;
+    }
+    
+    /* ========== Detail Overlay (Bus Info) ========== */
+    .detail-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none; /* Hidden by default */
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    .detail-content {
+      background: #fff;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    
+    .detail-content h3 {
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    
+    .detail-row {
+      margin-bottom: 0.5rem;
+    }
+    
+    .detail-row strong {
+      display: inline-block;
+      width: 120px;
+      color: #555;
+    }
+    
+    .close-btn {
+      display: block;
+      text-align: right;
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #007bff;
+      cursor: pointer;
+    }
+    
+    /* ========== API Key Overlay ========== */
+    .apikey-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+    }
+
+    .apikey-content {
+      background: #fff;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .apikey-content h3 {
+      margin-bottom: 1rem;
+    }
+
+    .apikey-input {
+      width: 80%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .apikey-button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .apikey-button:hover {
+      background: #0056b3;
+    }
+
+    /* Small improvements for mobile */
+    @media (max-width: 480px) {
+      .stop-header h2 {
+        font-size: 1rem;
+      }
+      .next-bus {
+        font-size: 1.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>bubs coming soont?</h1>
+    
+    <!-- Section: Work -->
+    <div id="stop-work" class="stop-section">
+      <div class="stop-header">
+        <h2>Work</h2>
+        <span class="stop-subtitle" id="stop-work-subtitle"></span>
+      </div>
+      <!-- Next bus (big text) -->
+      <div class="next-bus" id="work-next-bus"></div>
+      <!-- Subsequent buses -->
+      <div class="subsequent-buses" id="work-subsequent"></div>
+    </div>
+    
+    <!-- Section: Home -->
+    <div id="stop-home" class="stop-section">
+      <div class="stop-header">
+        <h2>Home</h2>
+        <span class="stop-subtitle" id="stop-home-subtitle"></span>
+      </div>
+      <!-- Next bus (big text) -->
+      <div class="next-bus" id="home-next-bus"></div>
+      <!-- Subsequent buses -->
+      <div class="subsequent-buses" id="home-subsequent"></div>
+    </div>
+  </div>
+  
+  <!-- Detail Overlay (Bus Info) -->
+  <div class="detail-overlay" id="detail-overlay">
+    <div class="detail-content">
+      <h3>Bus Details</h3>
+      <div class="detail-row"><strong>DirectionNum:</strong> <span id="detail-direction-num"></span></div>
+      <div class="detail-row"><strong>DirectionText:</strong> <span id="detail-direction-text"></span></div>
+      <div class="detail-row"><strong>Minutes:</strong> <span id="detail-minutes"></span></div>
+      <div class="detail-row"><strong>RouteID:</strong> <span id="detail-route-id"></span></div>
+      <div class="detail-row"><strong>TripID:</strong> <span id="detail-trip-id"></span></div>
+      <div class="detail-row"><strong>VehicleID:</strong> <span id="detail-vehicle-id"></span></div>
+      
+      <div class="close-btn" onclick="closeDetailOverlay()">Close</div>
+    </div>
+  </div>
+
+  <!-- API Key Overlay -->
+  <div class="apikey-overlay" id="apikey-overlay">
+    <div class="apikey-content">
+      <h3>Enter your WMATA API Key</h3>
+      <input id="apikey-input" class="apikey-input" type="text" placeholder="API Key" />
+      <button class="apikey-button" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+
+  <script>
+    // ======================= Configuration =======================
+    const BASE_URL = "https://api.wmata.com/NextBusService.svc/json/jPredictions";
+    
+    // We'll retrieve API key from localStorage
+    function getApiKey() {
+      return localStorage.getItem("WMATA_API_KEY");
+    }
+
+    // We only use this once, after the user enters a new key
+    function setApiKey(key) {
+      localStorage.setItem("WMATA_API_KEY", key);
+    }
+
+    // ======================= Utility Functions =======================
+    async function fetchPredictions(stopId) {
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        console.error("API key not set.");
+        return null;
+      }
+
+      const url = `${BASE_URL}?StopID=${stopId}`;
+      try {
+        const response = await fetch(url, {
+          headers: {
+            api_key: apiKey
+          }
+        });
+        if (!response.ok) {
+          throw new Error("Network response was not OK");
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Fetch error:", error);
+        return null;
+      }
+    }
+
+    function createBusTimeElement(prediction, sizeClass) {
+      // A reusable function to create a "time" display element
+      const el = document.createElement("div");
+      el.className = sizeClass;
+      el.textContent = prediction.Minutes + " min";
+      el.onclick = () => showDetail(prediction);
+      return el;
+    }
+
+    function showDetail(prediction) {
+      // Populate detail overlay
+      document.getElementById("detail-direction-num").textContent = prediction.DirectionNum;
+      document.getElementById("detail-direction-text").textContent = prediction.DirectionText;
+      document.getElementById("detail-minutes").textContent = prediction.Minutes;
+      document.getElementById("detail-route-id").textContent = prediction.RouteID;
+      document.getElementById("detail-trip-id").textContent = prediction.TripID;
+      document.getElementById("detail-vehicle-id").textContent = prediction.VehicleID;
+      
+      // Show overlay
+      document.getElementById("detail-overlay").style.display = "flex";
+    }
+
+    function closeDetailOverlay() {
+      document.getElementById("detail-overlay").style.display = "none";
+    }
+
+    function updateStopUI(subtitleId, nextBusId, subsequentId, data) {
+      const stopSubtitleEl = document.getElementById(subtitleId);
+      const nextBusEl = document.getElementById(nextBusId);
+      const subsequentContainer = document.getElementById(subsequentId);
+
+      // Clear existing contents
+      stopSubtitleEl.textContent = "";
+      nextBusEl.textContent = "";
+      subsequentContainer.innerHTML = "";
+
+      if (!data || !data.Predictions) {
+        stopSubtitleEl.textContent = "No data";
+        return;
+      }
+
+      // Show the stop name if returned
+      stopSubtitleEl.textContent = data.StopName || "";
+
+      const predictions = data.Predictions;
+      if (predictions.length === 0) {
+        nextBusEl.textContent = "No upcoming buses";
+        return;
+      }
+
+      // First bus in large text
+      const firstPrediction = predictions[0];
+      const bigEl = createBusTimeElement(firstPrediction, "next-bus");
+      nextBusEl.appendChild(bigEl);
+
+      // Subsequent buses in smaller text
+      const subsequentPredictions = predictions.slice(1);
+      subsequentPredictions.forEach(pred => {
+        const smallEl = createBusTimeElement(pred, "subsequent-bus");
+        subsequentContainer.appendChild(smallEl);
+      });
+    }
+
+    // ======================= Overlay Handling (API Key) =======================
+    function showApiKeyOverlay() {
+      const overlay = document.getElementById("apikey-overlay");
+      overlay.style.display = "flex";
+    }
+
+    function hideApiKeyOverlay() {
+      const overlay = document.getElementById("apikey-overlay");
+      overlay.style.display = "none";
+    }
+
+    function saveApiKey() {
+      const inputEl = document.getElementById("apikey-input");
+      const key = inputEl.value.trim();
+      if (!key) {
+        alert("Please enter a valid API key.");
+        return;
+      }
+      setApiKey(key);
+      hideApiKeyOverlay();
+      // Trigger a refresh after storing the new key
+      loadData();
+    }
+
+    // ======================= Main =======================
+    async function loadData() {
+      // Fetch for "Work" (StopID: 1001212)
+      const workData = await fetchPredictions("1001212");
+      updateStopUI("stop-work-subtitle", "work-next-bus", "work-subsequent", workData);
+
+      // Fetch for "Home" (StopID: 1001878)
+      const homeData = await fetchPredictions("1001878");
+      updateStopUI("stop-home-subtitle", "home-next-bus", "home-subsequent", homeData);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        // Ask the user for the API key
+        showApiKeyOverlay();
+      } else {
+        // We already have an API key, just load data
+        loadData();
+      }
+    });
+  </script>
+</body>
+</html>
